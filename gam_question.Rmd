@@ -1,0 +1,57 @@
+---
+title: "Example to illustrate question on CrossValidated"
+author: "Knut Anders Hovstad"
+date: "2023-11-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This is an example to illustrate a question asked on CrossValidated: 
+https://stats.stackexchange.com/questions/630188/estimated-means-for-groups-based-on-continous-predictor-in-gamm?noredirect=1#comment1176408_630188
+
+The objective is to describe offspring survival as a function of 
+age of the mother. This species can only reproduce once a year so 
+we are only interested in estimating probability of survival at 
+integer values of the predictor age.
+
+The data used in this example are not the actual data from the study
+as I do not have the opportunity to share those at this stage. 
+
+
+```{r message=FALSE}
+library(tidyverse)
+library(mgcv)
+library(emmeans)
+```
+
+```{r message=FALSE}
+example <- read_csv("example.csv")
+```
+
+```{r}
+m1 <- gam(survival ~ s(age, bs="cc", k = 4) + 
+            s(mother_id, bs="re") + s(litter_id, bs="re"),
+          family=binomial, data=example, method = "ML")
+summary(m1)
+emmeans(m1, ~ s(age), type = "response", at = list(age = 1:6))
+```
+
+The code above provide the estimated probability of survival for 
+integer values of age from 1 to 6. 
+
+The question is if we can report the *mean* estimated probability 
+of survival for all integer values from 2 to 5? 
+
+In the manuscript, this can perhaps be reported like this:
+_"The estimated probability of survival for pups of one year old mothers was 0.836 (95% CI: 0.779 - 0.880), for pups of mothers from two to five years ??? (95% CI: ...?), and for pups of mothers six years and older 0.836 (95% CI: 0.779 - 0.880)."_
+
+Note that ages six years and older are pooled together in the dataset.
+
+
+
+
+
+
+
